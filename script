@@ -1,0 +1,100 @@
+--[[
+Domoticz virtual devices based on function
+Josef Pavlik (c) 2020
+this code is Public domain
+
+Usage:
+Install this script in "events" window as Lua script, set trigger to "Device" and save it
+In the "hardware" window create dummy device and click to "create virtual sensors" button
+Set name of this device to "=function(parameters)"
+Actually there are these functions:
+
+=AVG(i1,i2,i3...)
+=MIN(i1,i2,i3...)
+=MAX(i1,i2,i3...)
+=SUM(i1,i2,i3...)
+
+where i1, i2 etc are indexes of devices which you want to read
+
+Example:
+you have three temperature sensors with indexes 12,11,12 (see page "Devices" in Setup
+Create device type temperature and name =AVG(10,11,12), this device will have value equal to average of the three physical sensors.
+
+--]]
+
+commandArray = {}
+local idx_to_name={}
+for n,i in pairs(otherdevices_idx) do idx_to_name[i]=n end
+
+local function updatenum(dev, value1)
+    local cmd = string.format("%d|0|%s", otherdevices_idx[dev], value1)
+    table.insert (commandArray, { ['UpdateDevice'] = cmd } )
+end
+
+local make={}
+
+make.AVG=function(d,p)
+  local s,n,changed=0,0,false
+  for x in p:gmatch("[^,]+") do
+    local dev=idx_to_name[tonumber(x)]
+    changed=changed or devicechanged[dev]
+    s=s+otherdevices[dev]
+    n=n+1
+  end
+  if changed then
+    local avg=s/n
+    updatenum(d,avg)
+  end
+end
+  
+make.SUM=function(d,p)
+  local s,changed=0,false
+  for x in p:gmatch("[^,]+") do
+    local dev=idx_to_name[tonumber(x)]
+    changed=changed or devicechanged[dev]
+    s=s+otherdevices[dev]
+  end
+  if changed then updatenum(d,s) end
+end
+  
+make.MIN=function(d,p)
+  local m,changed=999999999,false
+  for x in p:gmatch("[^,]+") do
+    local dev=idx_to_name[tonumber(x)]
+    changed=changed or devicechanged[dev]
+    if tonumber(otherdevices[dev])<m then m=tonumber(otherdevices[dev]) end
+  end
+  if changed then updatenum(d,m) end
+end
+  
+make.MAX=function(d,p)
+  local m,changed=-999999999,false
+  for x in p:gmatch("[^,]+") do
+    local dev=idx_to_name[tonumber(x)]
+    changed=changed or devicechanged[dev]
+    if tonumber(otherdevices[dev])>m then m=tonumber(otherdevices[dev]) end
+  end
+  if changed then updatenum(d,m) end
+end
+  
+
+local devlist={}
+for d in pairs(otherdevices) do table.insert(devlist,d) end
+
+local function funcs()
+    local idx=0
+    return function()
+        repeat
+          idx=idx+1
+          if not devlist[idx] then return nil end
+        until devlist[idx]:match("=[A-Z]+[(]") 
+        local f,p=devlist[idx]:match("=([A-Z]*)[(](.*)[)]")
+        return f,p,devlist[idx]
+      end
+end
+
+for f,p,d in funcs() do
+    if make[f] then make[f](d,p) end
+end
+
+return commandArray
