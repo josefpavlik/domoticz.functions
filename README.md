@@ -21,8 +21,8 @@ Like average temperature of three termometers or sum of five power meters
 <li>Find "Dummy switches"  - Dummy (Does nothing, use for virtual switches only) Create Virtual Sensors). If it does not exists, create it.</li>
 <li>Click on button "Create Virtual Sensors"</li>
 <li>Choose the sensor type (i.e. "temperature")</li>
-<li>Give the name to this virtual sensor. The must be formed by the equal sign '=', function name and the parameter(s) between the parenthesis. The name can be modified later in the page "Devices".
-i.e. =AVG(10,11,12) - gives the average value (temperature) of three sensors, devices with index 10, 11 and 12
+<li>Give the name to this virtual sensor. The name must be formed by the equal sign '=', function name and the parameter(s) between the parenthesis. The name can be modified later in the page "Devices".<br>
+i.e. =AVG(10,11,12) - gives the average value (temperature) of three sensors, devices with index 10, 11 and 12<br>
 Note, no spaces are allowed</li>
 </ul>
 <h3>Available functions:</h3>
