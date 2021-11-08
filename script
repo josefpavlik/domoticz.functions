@@ -38,10 +38,12 @@ make.AVG=function(d,p)
   for x in p:gmatch("[^,]+") do
     local dev=idx_to_name[tonumber(x)]
     changed=changed or devicechanged[dev]
-    s=s+otherdevices[dev]
-    n=n+1
+    if tonumber(otherdevices[dev]) then
+      s=s+tonumber(otherdevices[dev])
+      n=n+1
+    end  
   end
-  if changed then
+  if changed and n~=0 then
     local avg=s/n
     updatenum(d,avg)
   end
@@ -52,7 +54,9 @@ make.SUM=function(d,p)
   for x in p:gmatch("[^,]+") do
     local dev=idx_to_name[tonumber(x)]
     changed=changed or devicechanged[dev]
-    s=s+otherdevices[dev]
+    if tonumber(otherdevices[dev]) then
+      s=s+tonumber(otherdevices[dev])
+    end  
   end
   if changed then updatenum(d,s) end
 end
